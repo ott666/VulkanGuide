@@ -115,11 +115,13 @@ private:
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 		window = glfwCreateWindow(WIDTH, HEIGHT, "agora vai", nullptr, nullptr);
+		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 	}
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-
+		auto app = reinterpret_cast<TriangleApp*>(glfwGetWindowUserPointer(window));
+		app->framebufferResized = true;
 	}
 
 	void initVulkan() {
@@ -708,6 +710,15 @@ private:
 	}
 
 	void recreateSwapchain() {
+		int width = 0, height = 0;
+		glfwGetFramebufferSize(window, &width, &height);
+		while (width == 0 || height == 0) {
+			glfwGetFramebufferSize(window, &width, &height);
+			glfwWaitEvents();
+		}
+		
+		vkDeviceWaitIdle(device);
+		
 		vkDeviceWaitIdle(device);
 
 		cleanupSwapchain();
